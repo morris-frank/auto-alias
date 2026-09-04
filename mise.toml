@@ -1,0 +1,38 @@
+# mise is the single source of truth for the toolchain.
+# Exact resolved versions are recorded in mise.lock (committed).
+# The language lane (rust / go / bun) is added once SPEC.md fixes the implementation.
+min_version = "2026.7.0"
+
+[settings]
+lockfile = true  # write mise.lock for reproducibility
+
+[tools]
+prek = "latest"      # fast Rust drop-in for pre-commit; pre-1.0, churn expected
+gitleaks = "latest"  # secret scan at commit + CI
+shellcheck = "latest"
+shfmt = "latest"
+
+[env]
+_.file = [".env", ".env.local"]  # auto-load secrets for every tool
+
+[tasks.setup]
+description = "cold start: toolchain, hooks, verify"
+run = ["mise install", "prek install", "prek install -t pre-push", "mise run check"]
+
+[tasks.install]
+description = "toolchain + hooks, no verify"
+run = ["mise install", "prek install", "prek install -t pre-push"]
+
+[tasks.hooks]
+run = "prek run --all-files"
+
+[tasks.secrets]
+run = "gitleaks dir . --redact --verbose"
+
+[tasks.test]
+description = "placeholder until the language lane exists"
+run = "echo 'no tests yet'"
+
+[tasks.check]
+description = "everything CI runs — the definition of done"
+depends = ["hooks", "test"]

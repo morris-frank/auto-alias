@@ -1,0 +1,16 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Installs the exact toolchain from mise.toml/mise.lock — same as local.
+      - uses: jdx/mise-action@v2
+        with: { cache: true }
+      # The prek hooks ARE the lint gate — one definition, run identically here.
+      - run: prek run --all-files --show-diff-on-failure
+      - run: mise run test
+      - run: gitleaks dir . --redact --verbose  # backstop to the commit hook

@@ -1,0 +1,38 @@
+# The prek hook config IS the lint gate: per-file at commit, tests at push, whole repo in CI.
+default_stages: [pre-commit]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+  - repo: local
+    hooks:
+      # language: system so hooks call the mise-managed binaries — versions live in mise.toml only.
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck
+        language: system
+        types: [shell]
+      - id: shfmt
+        name: shfmt
+        entry: shfmt -w
+        language: system
+        types: [shell]
+      - id: gitleaks
+        name: gitleaks (staged)
+        entry: gitleaks git --staged --redact --verbose
+        language: system
+        pass_filenames: false
+      - id: tests
+        name: tests (pre-push)
+        entry: mise run test
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

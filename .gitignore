@@ -1,0 +1,15 @@
+# secrets — always
+.env
+.env.local
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+# build output (language lane decided by SPEC.md)
+dist/
+build/
+target/
+node_modules/
+# tool caches
+.mise/
+.prek/
