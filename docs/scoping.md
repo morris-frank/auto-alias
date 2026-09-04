@@ -126,3 +126,42 @@ Not what is asked, but shows where "registry of short forms" already lives in so
   (gum/fzf) — and whether accept is in v1.
 - D7 Message delivery: same prompt (synchronous), next prompt (deferred), or async fd watcher.
 - D8 Bash-on-remote: out of scope for v1?
+
+## Verified measurements (run on this machine, 2026-09-04)
+
+These are measured, not assumed. Drafts must build on them.
+
+**preexec argument semantics** — `$1` is the raw typed line, `$2`/`$3` are alias-expanded:
+
+| typed | `$1` | `$2` |
+|---|---|---|
+| `gs` | `gs` | `git status` |
+| `git status` | `git status` | `git status` |
+| `ls -la \| head -2 && echo hi` | unchanged | unchanged (no alias in play) |
+
+Consequence: **`[[ "$1" == "$2" ]]` means no alias expansion happened.** Combined with a reverse lookup
+of `$2` in the alias table, that is the whole of rule 1's exact-match detection — no parsing needed.
+
+**Hot-path costs**
+
+| operation | measured |
+|---|---|
+| one `fork`+`exec` of a trivial binary | **1.17 ms** (100 forks = 116.9 ms) |
+| one zsh associative-array lookup | **0.0007 ms** (10 000 lookups = 7.2 ms) |
+| building a 37-entry reverse table from `alias -L` | **0.91 ms**, once per shell start |
+| `zoxide query --list` (real small binary) | ~8 ms |
+
+Consequence: an in-shell lookup is ~1700× cheaper than the cheapest possible binary call. Any design that
+forks per command pays at least 1.2 ms; a design that forks only when it has something to say pays nothing
+on the common path.
+
+**History file** — `od -c ~/.zsh_history` shows bare command lines with no `: <epoch>:<dur>;` prefix.
+`EXTENDED_HISTORY` is off, so **there are no timestamps**. Recurrence analysis over `$HISTFILE` has no time
+dimension: no "N times in the last week", only "N times in the last 26 771 commands".
+
+**Normalization is load-bearing** — the real aliases carry trailing spaces (`gs='git status '`). A reverse
+lookup that does not trim trailing whitespace on both sides misses every one of them. Verified: an untrimmed
+build of the reverse table failed to match `git status`.
+
+**`whence -w` classifies in one call**: returns `alias`, `function`, `command`, `builtin`, or `none`.
+That is the collision check for proposed names.
