@@ -35,6 +35,12 @@ in a real interactive zsh under a temp `HOME` (§15).
 
 ```zsh
 # auto-alias 0.1 — zsh integration, emitted by `auto-alias init zsh`. Do not edit.
+#
+# The whole file is one anonymous function. A bare `return` at the top level of an `eval`
+# terminates the *calling* script with no error (verified in M1), so a non-interactive shell
+# sourcing a file that carries the install line would silently stop there. Inside a function,
+# `return` only leaves the function. All state below is declared -g.
+() {
 [[ -o interactive ]] || return 0
 zmodload -F zsh/datetime p:EPOCHSECONDS || return 0
 zmodload -F zsh/parameter p:aliases p:galiases p:functions p:builtins p:commands p:reswords || return 0
@@ -117,6 +123,7 @@ __aa_precmd() {
 
 add-zsh-hook -d preexec __aa_preexec; add-zsh-hook preexec __aa_preexec
 add-zsh-hook -d precmd  __aa_precmd;  add-zsh-hook precmd  __aa_precmd
+}
 ```
 
 Three draft-A defects survive as comments above: quoted `${(@kv)aliases}` (unquoted, `alias empty=''` shifts every following
@@ -314,7 +321,9 @@ semantics the tool lacks; a guessed default list was rejected.
 Toolchain pins for `mise.toml`: `rust = "1.98"` under `[tools]` (matches the installed Homebrew rustc; the resolved version is
 recorded in the committed `mise.lock`). No other tool is added; CI gains `apt-get -y zsh`.
 
-- **M1 — "alias exists", nothing else.** `shell/init.zsh` cut to `__aa_table`, `__aa_lookup`, `__aa_preexec` and the `_aa_msg`
+- **M1 — "alias exists", nothing else.** — **built** (`shell/init.zsh`, `src/main.rs`, `tests/shell.zsh`; 18 shell + 3 cargo
+  tests green, measured 0.027 ms per command).
+  Original plan: `shell/init.zsh` cut to `__aa_table`, `__aa_lookup`, `__aa_preexec` and the `_aa_msg`
   half of `__aa_precmd`, plus `auto-alias init zsh` — a `println!` of an `include_str!`, the whole binary at this point. No
   state dir, no binary call in the hook, no proposals. This alone carries the ~1900-hit rule-1 signal and is shippable.
   Acceptance: T1, T2, T3, T5, T8, T10's shell half.
@@ -371,6 +380,18 @@ Two traps confirmed by hand, both avoided by the current snippet but fatal to th
   not. The normalizer was checked byte-exact on quoted pipes, globs and embedded operators.
 - A single `$(...)` command substitution anywhere in the hook forks a subshell. In a scratch prototype it alone moved the hot
   path from 0.015 ms to 0.435 ms, a 28x regression. `$(<file)` is the fork-free read form and is what the snippet uses.
+
+### M1 build notes (what the build changed in this spec)
+
+1. **The `[[ -o interactive ]] || return 0` guard was unsafe as written.** A bare `return` at the top level of an `eval`
+   terminates the calling script silently and with exit 0. Reproduced: a script that prints, evals the snippet, then prints
+   again produced only the first line. §2 now wraps the whole snippet in an anonymous function. M3 inherits the wrapper.
+2. **M1's snippet is §2 minus what M1 does not have**: no `__aa_free`, no `AUTO_ALIAS_STATE`, no `pending`/`shown`, no detached
+   spawn, and `zmodload zsh/parameter` narrowed to `p:aliases`. `zsh/files` is not loaded at all. Everything else is verbatim.
+3. **A lint gate that always passed.** `zsh -n a b` parses only `a` and turns `b` into a positional parameter, so the obvious
+   hook form reported success on a file it never read. Proven by planting a syntax error. The hook now loops per file.
+4. **Hooks must be routed through `mise exec`.** Git invokes hooks outside the activated environment, where `cargo` resolves to
+   whatever rustup has; `rustfmt` and `clippy` were absent there while present under mise.
 
 ## 16. Review log
 
