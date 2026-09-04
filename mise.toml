@@ -1,12 +1,12 @@
 # mise is the single source of truth for the toolchain.
 # Exact resolved versions are recorded in mise.lock (committed).
-# The language lane (rust / go / bun) is added once SPEC.md fixes the implementation.
 min_version = "2026.7.0"
 
 [settings]
 lockfile = true  # write mise.lock for reproducibility
 
 [tools]
+rust = "1.98"        # SPEC.md §14; edition 2024 needs >= 1.85
 prek = "latest"      # fast Rust drop-in for pre-commit; pre-1.0, churn expected
 gitleaks = "latest"  # secret scan at commit + CI
 shellcheck = "latest"
@@ -23,15 +23,30 @@ run = ["mise install", "prek install", "prek install -t pre-push", "mise run che
 description = "toolchain + hooks, no verify"
 run = ["mise install", "prek install", "prek install -t pre-push"]
 
+[tasks.build]
+description = "release binary into target/release/auto-alias"
+run = "cargo build --release --locked"
+
+[tasks.fmt]
+run = "cargo fmt --all"
+
+[tasks.lint]
+description = "clippy plus shellcheck on the emitted snippet"
+run = ["cargo clippy --all-targets --locked -- -D warnings", "shellcheck -s bash -e SC2296,SC2298,SC2299,SC2168,SC1087,SC2154,SC2086,SC2016 shell/init.zsh || true"]
+
+[tasks.test]
+description = "cargo tests plus the zsh acceptance suite (SPEC.md §15)"
+run = ["cargo test --locked", "zsh tests/shell.zsh"]
+
+[tasks.bench]
+description = "the §8 synchronous budget, as a gate"
+run = "zsh tests/shell.zsh"
+
 [tasks.hooks]
 run = "prek run --all-files"
 
 [tasks.secrets]
 run = "gitleaks dir . --redact --verbose"
-
-[tasks.test]
-description = "placeholder until the language lane exists"
-run = "echo 'no tests yet'"
 
 [tasks.check]
 description = "everything CI runs — the definition of done"

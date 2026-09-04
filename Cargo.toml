@@ -1,0 +1,15 @@
+[package]
+name = "auto-alias"
+version = "0.1.0"
+edition = "2024"
+description = "Tells you when a command you typed already has an alias."
+license = "MIT"
+repository = "https://github.com/morris-frank/auto-alias"
+
+# No dependencies, by design (SPEC.md §10). Argument parsing is a match on argv[1].
+[dependencies]
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true

@@ -13,20 +13,33 @@ repos:
       - id: check-added-large-files
   - repo: local
     hooks:
-      # language: system so hooks call the mise-managed binaries — versions live in mise.toml only.
-      - id: shellcheck
-        name: shellcheck
-        entry: shellcheck
+      # language: system so hooks call the mise-managed binaries — versions live in
+      # mise.toml only. Routed through `mise exec` because git invokes hooks outside
+      # the activated environment, where `cargo` is whatever rustup happens to have.
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: mise exec -- cargo fmt --all --
         language: system
-        types: [shell]
-      - id: shfmt
-        name: shfmt
-        entry: shfmt -w
+        types: [rust]
+        pass_filenames: false
+      - id: cargo-clippy
+        name: cargo clippy
+        entry: mise exec -- cargo clippy --all-targets --locked -- -D warnings
         language: system
-        types: [shell]
+        types: [rust]
+        pass_filenames: false
+      # shell/init.zsh is zsh, not POSIX sh: shellcheck cannot parse it, so it is
+      # covered by tests/shell.zsh (which runs it in a real zsh) instead.
+      - id: zsh-syntax
+        name: zsh -n (parse the emitted snippet and the suite)
+        # Loop explicitly: `zsh -n a b` parses only `a` and turns `b` into a
+        # positional parameter, so the plain form passes files it never read.
+        entry: mise exec -- zsh -c 'for f in "$@"; do zsh -n "$f" || exit 1; done' --
+        language: system
+        files: '\.zsh$'
       - id: gitleaks
         name: gitleaks (staged)
-        entry: gitleaks git --staged --redact --verbose
+        entry: mise exec -- gitleaks git --staged --redact --verbose
         language: system
         pass_filenames: false
       - id: tests

@@ -7,6 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # The acceptance suite drives a real interactive zsh; the runner has none.
+      - run: sudo apt-get update && sudo apt-get install -y zsh
       # Installs the exact toolchain from mise.toml/mise.lock — same as local.
       - uses: jdx/mise-action@v2
         with: { cache: true }
