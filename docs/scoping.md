@@ -38,16 +38,17 @@ Counts from the current history file:
 
 | signal | count | which rule fires |
 |---|---|---|
-| `cd …` typed although `c='z '` and zoxide exist | 41 | match (alias exists) |
-| `git …` typed although `g='git '` exists | 39 | match (alias exists) |
-| `hubspot-conversations-fetch …` | 16 | propose (recurring long command) |
+| `git …` typed although `g='git '` exists | 1108 | match (alias exists) |
+| `cd …` typed although `c='z '` and zoxide exist | 790 | match (semantic equivalent) |
+| `mise …` typed although `m='mise '` exists | 456 | match (alias exists) |
+| `hubspot-conversations-fetch` (exact line) | 21 | propose (recurring long command) |
 | `codex-session-fetch` | 8 | propose |
-| `./hubspot-conversations-fzf` | 7 | propose |
+| `./hubspot-conversations-fzf` | 8 | propose |
 | `mise run typecheck` | 5 | propose (or note `m` exists → `m run typecheck`) |
 | `command find . -name '*.py' -type f -exec wc -l {} + \| sort -r \| fzf` | 3 | propose (chained pipeline) |
 | `claude --teleport <id>` | 4 | propose (prefix recurs, argument varies → function, not alias) |
 
-Takeaways: the "match" rule alone would fire ~80 times on this history. Recurrence thresholds
+Takeaways: the "match" rule alone has ~2350 occasions to fire on this history. Recurrence thresholds
 must count *normalized* commands (strip trailing whitespace, collapse spaces) — several duplicates
 differ only by a trailing space. Some proposals need a parameter (`claude --teleport $1`), i.e. a
 function, not an alias.
@@ -165,3 +166,10 @@ build of the reverse table failed to match `git status`.
 
 **`whence -w` classifies in one call**: returns `alias`, `function`, `command`, `builtin`, or `none`.
 That is the collision check for proposed names.
+
+> **Correction (2026-09-04).** The first version of the table above under-counted by roughly 20x. The counting
+> pipeline used `sed` on a history file containing non-UTF-8 bytes; `sed` aborted with `RE error: illegal byte
+> sequence` and the truncated output was tallied as if complete. Recounted byte-safely with `awk` over all
+> 26 849 lines. Lesson for the tool itself: **any component that reads `$HISTFILE` must be byte-safe and must
+> fail loudly, not silently truncate.** Top first words: `ls` 3542, `z` 3313, `q` 2085, `gs` 1206, `git` 1117,
+> `m` 1046, `cd` 814, `claude` 558.
