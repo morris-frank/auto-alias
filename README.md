@@ -1,10 +1,24 @@
-# auto-alias
+<img src="brand/icon/icon-auto-alias-on-obsidian-512.png" align="left" width="128" hspace="16" alt="auto-alias icon">
 
-Tells you when a command you just typed already has an alias.
+<h3>auto-alias</h3>
 
-It is never invoked by hand except to install it. A zsh hook compares what you typed
-against your live alias table and, if a shorter form existed, prints one line after the
-command finishes:
+<p>
+  <sub>A ZSH HOOK, NOT A COMMAND</sub>
+  <br>
+  <strong>Tells you when a command you just typed already has an alias.</strong>
+  <br>
+  <br>
+  <img src="https://img.shields.io/badge/shell-zsh-8EDE3D?style=flat-square&amp;labelColor=16211B" alt="zsh">
+  <img src="https://img.shields.io/badge/built%20with-Rust-8EDE3D?style=flat-square&amp;labelColor=16211B" alt="Rust">
+  <img src="https://img.shields.io/badge/per%20command-0.027%20ms-1AB172?style=flat-square&amp;labelColor=16211B" alt="0.027 ms per command">
+  <img src="https://img.shields.io/badge/status-M1%3A%20match%20only-EE7931?style=flat-square&amp;labelColor=16211B" alt="Status M1: match only">
+</p>
+
+<br clear="left">
+
+You never run it by hand except to install it. The hook compares what you typed against
+your live alias table and, if a shorter form existed, prints one line after the command
+finishes:
 
 ```
 $ git status --short
