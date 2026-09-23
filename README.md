@@ -5,13 +5,14 @@
 <p>
   <sub>A ZSH HOOK, NOT A COMMAND</sub>
   <br>
-  <strong>Tells you when a command you just typed already has an alias.</strong>
+  <strong>zsh hook that tells you when a command you just typed already has an alias.</strong>
   <br>
   <br>
-  <img src="https://img.shields.io/badge/shell-zsh-8EDE3D?style=flat-square&amp;labelColor=16211B" alt="zsh">
-  <img src="https://img.shields.io/badge/built%20with-Rust-8EDE3D?style=flat-square&amp;labelColor=16211B" alt="Rust">
-  <img src="https://img.shields.io/badge/per%20command-0.027%20ms-1AB172?style=flat-square&amp;labelColor=16211B" alt="0.027 ms per command">
-  <img src="https://img.shields.io/badge/status-M1%3A%20match%20only-EE7931?style=flat-square&amp;labelColor=16211B" alt="Status M1: match only">
+  <a href="https://crates.io/crates/auto-alias"><img src="https://img.shields.io/crates/v/auto-alias?style=flat-square&amp;color=CE422B&amp;logo=rust&amp;labelColor=2D2825" alt="crates.io version"></a>
+  <img src="https://img.shields.io/badge/shell-zsh-D78A7A?style=flat-square&amp;labelColor=2D2825" alt="zsh">
+  <img src="https://img.shields.io/badge/built%20with-Rust-D78A7A?style=flat-square&amp;labelColor=2D2825" alt="Rust">
+  <img src="https://img.shields.io/badge/per%20command-0.027%20ms-7E9688?style=flat-square&amp;labelColor=2D2825" alt="0.027 ms per command">
+  <img src="https://img.shields.io/badge/status-M1%3A%20match%20only-A78D73?style=flat-square&amp;labelColor=2D2825" alt="Status M1: match only">
 </p>
 
 <br clear="left">
@@ -29,7 +30,7 @@ auto-alias: gs is 'git status' — 'gs --short' would have done it.
 ## Install
 
 ```sh
-cargo install --locked --git https://github.com/morris-frank/auto-alias
+cargo install --locked auto-alias
 echo 'eval "$(auto-alias init zsh)"' >> ~/.zshrc
 exec zsh
 ```

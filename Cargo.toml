@@ -2,9 +2,13 @@
 name = "auto-alias"
 version = "0.1.0"
 edition = "2024"
-description = "Tells you when a command you typed already has an alias."
+description = "zsh hook that tells you when a command you just typed already has an alias."
 license = "MIT"
 repository = "https://github.com/morris-frank/auto-alias"
+readme = "README.md"
+keywords = ["zsh", "alias", "shell", "cli", "productivity"]
+categories = ["command-line-utilities"]
+include = ["/src/", "/shell/", "/README.md", "/LICENSE"]
 
 # No dependencies, by design (SPEC.md §10). Argument parsing is a match on argv[1].
 [dependencies]
